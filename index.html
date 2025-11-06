@@ -23,7 +23,6 @@
       border-radius: 10px;
       cursor: pointer;
     }
-    .hidden { display: none; }
     canvas { display: block; margin: 0 auto; }
   </style>
 </head>
@@ -58,40 +57,56 @@
 
     // Stage 1 - Welcome
     function welcomeStage() {
-      container.innerHTML = `<h2>Welcome to your silly birthday quest 😜</h2><p>Are you ready?</p><button onclick='nextStage()'>Let's go!</button>`;
+      container.innerHTML = `
+        <h2>Welcome to your silly birthday quest 😜</h2>
+        <p>Are you ready?</p>
+        <button onclick='nextStage()'>Let's go!</button>
+      `;
     }
 
     // Stage 2 - Emoji Riddle
     function emojiRiddleStage() {
-      container.innerHTML = `<h2>Decode this: 🏠🍝🎬❤️</h2><p>Hint: our favorite night in?</p><input id='answer'/><button onclick='check()'>Submit</button>`;
-      window.check = function() {
-        if (document.getElementById('answer').value.toLowerCase().includes('movie')) nextStage();
-        else alert('Try again 😆');
-      };
+      container.innerHTML = `
+        <h2>Decode this: 🏠🍝🎬❤️</h2>
+        <p>Hint: our favorite night in?</p>
+        <input id="answer" />
+        <button onclick="checkRiddle()">Submit</button>
+      `;
+    }
+
+    function checkRiddle() {
+      const ans = document.getElementById('answer').value.toLowerCase();
+      if (ans.includes('movie')) nextStage();
+      else alert('Try again 😆');
     }
 
     // Stage 3 - Hidden clickable hearts
     function hiddenHeartStage() {
       container.innerHTML = `<h2>Find the hidden heart 💘</h2>`;
-      for (let i=0;i<20;i++) {
+      for (let i = 0; i < 20; i++) {
         const heart = document.createElement('span');
         heart.textContent = '💖';
-        heart.style.position='absolute';
-        heart.style.left=Math.random()*90+'%';
-        heart.style.top=Math.random()*80+'%';
-        heart.style.cursor='pointer';
-        heart.onclick=()=>{alert('You found it!');nextStage();};
-        if (i!==7) heart.onclick=null;
+        heart.style.position = 'absolute';
+        heart.style.left = Math.random() * 90 + '%';
+        heart.style.top = Math.random() * 80 + '%';
+        heart.style.cursor = 'pointer';
+        if (i === 7) {
+          heart.onclick = () => { alert('You found it!'); nextStage(); };
+        }
         document.body.appendChild(heart);
       }
     }
 
     // Stage 4 - Find my heart
     function findMyHeartStage() {
-      container.innerHTML = `<h2>Find my heart on this picture 💓</h2><p>(Click around!)</p>`;
-      const area=document.createElement('div');
-      area.style.width='300px';area.style.height='300px';area.style.background='pink';area.style.margin='0 auto';area.onclick=function(e){
-        if (e.offsetX>120 && e.offsetX<180 && e.offsetY>120 && e.offsetY<180) nextStage();
+      container.innerHTML = `<h2>Find my heart on this pink square 💓</h2><p>(Click around!)</p>`;
+      const area = document.createElement('div');
+      area.style.width = '300px';
+      area.style.height = '300px';
+      area.style.background = 'pink';
+      area.style.margin = '0 auto';
+      area.onclick = (e) => {
+        if (e.offsetX > 120 && e.offsetX < 180 && e.offsetY > 120 && e.offsetY < 180) nextStage();
         else alert('Nope 😝');
       };
       container.appendChild(area);
@@ -99,35 +114,192 @@
 
     // Stage 5 - Hidden button in text
     function hiddenButtonStage() {
-      container.innerHTML = `<p>Sometimes love hides in plain sight 😘. Can you <span id='secret' style='color:hotpink;cursor:pointer;'>find</span> it?</p>`;
-      document.getElementById('secret').onclick=()=>nextStage();
+      container.innerHTML = `
+        <p>Sometimes love hides in plain sight 😘. Can you 
+        <span id="secret" style="color:hotpink;cursor:pointer;">find</span> it?</p>
+      `;
+      document.getElementById('secret').onclick = () => nextStage();
     }
 
     // Stage 6 - Catch the Hearts
     function catchHeartsStage() {
-      container.innerHTML = `<h2>Catch 5 hearts! 💕</h2><canvas id='catch' width='400' height='400' style='background:#ffe6f2'></canvas>`;
-      const c=document.getElementById('catch');const ctx=c.getContext('2d');let score=0;let hearts=[];for(let i=0;i<5;i++){hearts.push({x:Math.random()*380,y:-20});}
-      function draw(){ctx.clearRect(0,0,400,400);ctx.fillText('Score:'+score,10,20);ctx.fillRect(mouseX,380,40,10);ctx.fillStyle='red';hearts.forEach(h=>{ctx.beginPath();ctx.arc(h.x,h.y,10,0,Math.PI*2);ctx.fill();});}
-      function update(){hearts.forEach(h=>{h.y+=3;if(h.y>380&&h.x>mouseX&&h.x<mouseX+40){score++;h.y=-20;h.x=Math.random()*380;if(score>=5)nextStage();}});}
-      let mouseX=200;c.onmousemove=e=>{mouseX=e.offsetX;};function loop(){draw();update();requestAnimationFrame(loop);}loop();
+      container.innerHTML = `<h2>Catch 5 hearts! 💕</h2>
+        <canvas id="catch" width="400" height="400" style="background:#ffe6f2"></canvas>`;
+      const c = document.getElementById('catch');
+      const ctx = c.getContext('2d');
+      let score = 0, mouseX = 200;
+      let hearts = Array(5).fill().map(() => ({ x: Math.random() * 380, y: -20 }));
+
+      c.onmousemove = e => { mouseX = e.offsetX; };
+
+      function draw() {
+        ctx.clearRect(0, 0, 400, 400);
+        ctx.fillText('Score:' + score, 10, 20);
+        ctx.fillRect(mouseX, 380, 40, 10);
+        hearts.forEach(h => {
+          ctx.beginPath();
+          ctx.arc(h.x, h.y, 10, 0, Math.PI * 2);
+          ctx.fillStyle = 'red';
+          ctx.fill();
+        });
+      }
+
+      function update() {
+        hearts.forEach(h => {
+          h.y += 3;
+          if (h.y > 380 && h.x > mouseX && h.x < mouseX + 40) {
+            score++;
+            h.y = -20;
+            h.x = Math.random() * 380;
+            if (score >= 5) nextStage();
+          }
+        });
+      }
+
+      function loop() {
+        draw();
+        update();
+        requestAnimationFrame(loop);
+      }
+      loop();
     }
 
     // Stage 7 - Maze Quest
-    function mazeStage(){container.innerHTML='<h2>Navigate the maze ⬅️⬆️⬇️➡️</h2><div id="maze" style="width:200px;height:200px;margin:0 auto;background:#ffd6e7;position:relative;"><div id="player" style="width:20px;height:20px;background:red;position:absolute;top:0;left:0;"></div><div id="goal" style="width:20px;height:20px;background:green;position:absolute;bottom:0;right:0;"></div></div>';let p=document.getElementById('player');document.onkeydown=function(e){let l=p.offsetLeft,t=p.offsetTop;if(e.key==='ArrowRight')l+=20;if(e.key==='ArrowLeft')l-=20;if(e.key==='ArrowUp')t-=20;if(e.key==='ArrowDown')t+=20;p.style.left=l+'px';p.style.top=t+'px';if(l>=180&&t>=180)nextStage();};}
+    function mazeStage() {
+      container.innerHTML = `
+        <h2>Navigate the maze ⬅️⬆️⬇️➡️</h2>
+        <div id="maze" style="width:200px;height:200px;margin:0 auto;background:#ffd6e7;position:relative;">
+          <div id="player" style="width:20px;height:20px;background:red;position:absolute;top:0;left:0;"></div>
+          <div id="goal" style="width:20px;height:20px;background:green;position:absolute;bottom:0;right:0;"></div>
+        </div>
+      `;
+      let p = document.getElementById('player');
+      document.onkeydown = function(e) {
+        let l = p.offsetLeft, t = p.offsetTop;
+        if (e.key === 'ArrowRight') l += 20;
+        if (e.key === 'ArrowLeft') l -= 20;
+        if (e.key === 'ArrowUp') t -= 20;
+        if (e.key === 'ArrowDown') t += 20;
+        p.style.left = l + 'px';
+        p.style.top = t + 'px';
+        if (l >= 180 && t >= 180) nextStage();
+      };
+    }
 
     // Stage 8 - Whack-a-Heart
-    function whackAHeartStage(){container.innerHTML='<h2>Whack the hearts! 💥</h2><div id="board" style="width:300px;height:300px;position:relative;margin:0 auto;background:#ffe6f2"></div>';const b=document.getElementById('board');let score=0;function spawn(){const h=document.createElement('div');h.textContent='💖';h.style.position='absolute';h.style.left=Math.random()*270+'px';h.style.top=Math.random()*270+'px';h.style.cursor='pointer';h.onclick=()=>{score++;h.remove();if(score>=5)nextStage();};b.appendChild(h);setTimeout(()=>h.remove(),800);}let int=setInterval(spawn,700);}
+    function whackAHeartStage() {
+      container.innerHTML = `
+        <h2>Whack the hearts! 💥</h2>
+        <div id="board" style="width:300px;height:300px;position:relative;margin:0 auto;background:#ffe6f2"></div>
+      `;
+      const b = document.getElementById('board');
+      let score = 0;
+      function spawn() {
+        const h = document.createElement('div');
+        h.textContent = '💖';
+        h.style.position = 'absolute';
+        h.style.left = Math.random() * 270 + 'px';
+        h.style.top = Math.random() * 270 + 'px';
+        h.style.cursor = 'pointer';
+        h.onclick = () => {
+          score++;
+          h.remove();
+          if (score >= 5) nextStage();
+        };
+        b.appendChild(h);
+        setTimeout(() => h.remove(), 800);
+      }
+      setInterval(spawn, 700);
+    }
 
     // Stage 9 - Memory Match
-    function memoryMatchStage(){container.innerHTML='<h2>Match the pairs 💕</h2>';const cards=['A','A','B','B'];cards.sort(()=>0.5-Math.random());let open=[];const grid=document.createElement('div');grid.style.display='grid';grid.style.gridTemplateColumns='repeat(2,100px)';grid.style.gap='10px';grid.style.justifyContent='center';cards.forEach(c=>{const btn=document.createElement('button');btn.textContent='?';btn.onclick=()=>{btn.textContent=c;open.push(btn);if(open.length===2){if(open[0].textContent===open[1].textContent){open=[];if([...grid.children].every(x=>x.textContent!=='?'))nextStage();}else{setTimeout(()=>open.forEach(x=>x.textContent='?'),500);open=[];}}};grid.appendChild(btn);});container.appendChild(grid);}
+    function memoryMatchStage() {
+      container.innerHTML = '<h2>Match the pairs 💕</h2>';
+      const cards = ['A','A','B','B'].sort(() => 0.5 - Math.random());
+      const grid = document.createElement('div');
+      grid.style.display = 'grid';
+      grid.style.gridTemplateColumns = 'repeat(2,100px)';
+      grid.style.gap = '10px';
+      grid.style.justifyContent = 'center';
+      let open = [];
+      cards.forEach(c => {
+        const btn = document.createElement('button');
+        btn.textContent = '?';
+        btn.onclick = () => {
+          btn.textContent = c;
+          open.push(btn);
+          if (open.length === 2) {
+            if (open[0].textContent === open[1].textContent) {
+              open = [];
+              if ([...grid.children].every(x => x.textContent !== '?')) nextStage();
+            } else {
+              setTimeout(() => open.forEach(x => x.textContent = '?'), 500);
+              open = [];
+            }
+          }
+        };
+        grid.appendChild(btn);
+      });
+      container.appendChild(grid);
+    }
 
-    // Stage 10 - Crossword placeholder
-    function crosswordStage(){container.innerHTML='<h2>Quick Crossword</h2><p>Type the magic word 💖</p><input id="cw"/><button onclick="if(document.getElementById('cw').value.toLowerCase().includes('love'))nextStage();else alert('Try again!')">Submit</button>'}
+    // Stage 10 - Crossword
+    function crosswordStage() {
+      container.innerHTML = `
+        <h2>Quick Crossword</h2>
+        <p>Type the magic word 💖</p>
+        <input id="cw" />
+        <button onclick="checkCrossword()">Submit</button>
+      `;
+    }
+
+    function checkCrossword() {
+      const val = document.getElementById("cw").value.toLowerCase();
+      if (val.includes("love")) nextStage();
+      else alert("Try again!");
+    }
 
     // Stage 11 - Final Reveal
-    function finalRevealStage(){container.innerHTML='<h2>YOU DID IT 🎉</h2><video width="320" controls src="VIDEO_URL_PLACEHOLDER.mp4"></video><p><a href="GIFT_LINK_PLACEHOLDER" target="_blank">🎁 Click here for your gift 🎁</a></p>';showConfetti();}
+    function finalRevealStage() {
+      container.innerHTML = `
+        <h2>YOU DID IT 🎉</h2>
+        <video width="320" controls src="VIDEO_URL_PLACEHOLDER.mp4"></video>
+        <p><a href="GIFT_LINK_PLACEHOLDER" target="_blank">🎁 Click here for your gift 🎁</a></p>
+      `;
+      showConfetti();
+    }
 
-    function showConfetti(){const conf=document.createElement('canvas');conf.width=window.innerWidth;conf.height=window.innerHeight;conf.style.position='fixed';conf.style.top=0;conf.style.left=0;conf.style.pointerEvents='none';document.body.appendChild(conf);const ctx=conf.getContext('2d');let particles=[];for(let i=0;i<150;i++){particles.push({x:Math.random()*conf.width,y:Math.random()*conf.height,vy:Math.random()*3+1,size:Math.random()*5+2,color:`hsl(${Math.random()*360},100%,70%)`});}function render(){ctx.clearRect(0,0,conf.width,conf.height);particles.forEach(p=>{ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();p.y+=p.vy;if(p.y>conf.height)p.y=-10;});requestAnimationFrame(render);}render();}
+    function showConfetti() {
+      const conf = document.createElement('canvas');
+      conf.width = window.innerWidth;
+      conf.height = window.innerHeight;
+      conf.style.position = 'fixed';
+      conf.style.top = 0;
+      conf.style.left = 0;
+      conf.style.pointerEvents = 'none';
+      document.body.appendChild(conf);
+      const ctx = conf.getContext('2d');
+      let particles = Array(150).fill().map(() => ({
+        x: Math.random() * conf.width,
+        y: Math.random() * conf.height,
+        vy: Math.random() * 3 + 1,
+        size: Math.random() * 5 + 2,
+        color: `hsl(${Math.random() * 360},100%,70%)`
+      }));
+      function render() {
+        ctx.clearRect(0, 0, conf.width, conf.height);
+        particles.forEach(p => {
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+          p.y += p.vy;
+          if (p.y > conf.height) p.y = -10;
+        });
+        requestAnimationFrame(render);
+      }
+      render();
+    }
 
     nextStage();
   </script>
